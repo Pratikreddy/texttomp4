@@ -17,3 +17,90 @@ Visuals: Map transitions to show leading production countries with highlights.
 00:56 - 01:00
 Text: Encourage viewers to explore the potential of the [Fruit/Vegetable].
 Visuals: Return to the initial image of the [Fruit/Vegetable] in a serene setting, possibly with people enjoying its benefits.
+
+
+
+
+
+
+
+
+
+{
+    "title": "From Seed to Superfood",
+    "segments": [
+        {
+            "start_time": 0,
+            "end_time": 5,
+            "text": "Introduce a captivating fact about the [Fruit/Vegetable].",
+            "visual_prompt": "Close-up of the [Fruit/Vegetable] in a natural setting."
+        },
+        {
+            "start_time": 6,
+            "end_time": 10,
+            "text": "Mention the origin and historical background of the [Fruit/Vegetable].",
+            "visual_prompt": "Stylized map highlighting the geographical origin."
+        },
+        {
+            "start_time": 11,
+            "end_time": 15,
+            "text": "List the top global producers, focusing on any significant contributors.",
+            "visual_prompt": "Map transitions to show leading production countries with highlights."
+        },
+        {
+            "start_time": 16,
+            "end_time": 20,
+            "text": "Describe key nutritional benefits of the [Fruit/Vegetable].",
+            "visual_prompt": "Images of vitamins or health symbols alongside the [Fruit/Vegetable]."
+        },
+        {
+            "start_time": 21,
+            "end_time": 25,
+            "text": "Transition to cultivation specifics in India, mentioning key states.",
+            "visual_prompt": "Map of India focusing on states known for cultivation."
+        },
+        {
+            "start_time": 26,
+            "end_time": 30,
+            "text": "Discuss the cost of cultivation per acre.",
+            "visual_prompt": "Split-screen showing farming activities and costs."
+        },
+        {
+            "start_time": 31,
+            "end_time": 35,
+            "text": "Highlight returns per acre and potential profit margins.",
+            "visual_prompt": "Image of rupee notes and yields."
+        },
+        {
+            "start_time": 36,
+            "end_time": 40,
+            "text": "Introduce the concept of value addition.",
+            "visual_prompt": "Montage of [Fruit/Vegetable] being processed into various products."
+        },
+        {
+            "start_time": 41,
+            "end_time": 45,
+            "text": "Discuss various value-added products and their market relevance.",
+            "visual_prompt": "Scenes of processing facilities and product displays."
+        },
+        {
+            "start_time": 46,
+            "end_time": 50,
+            "text": "Illustrate the increase in earnings through value addition.",
+            "visual_prompt": "Animated graph showing rising profits."
+        },
+        {
+            "start_time": 51,
+            "end_time": 55,
+            "text": "Reiterate the economic and health benefits of the [Fruit/Vegetable].",
+            "visual_prompt": "Scenes of healthy lifestyles and economic activities linked to the [Fruit/Vegetable]."
+        },
+        {
+            "start_time": 56,
+            "end_time": 60,
+            "text": "Encourage viewers to explore the potential of the [Fruit/Vegetable].",
+            "visual_prompt": "Return to the initial image of the [Fruit/Vegetable] in a serene setting, possibly with people enjoying its benefits."
+        }
+    ]
+}
+
