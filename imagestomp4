@@ -1,0 +1,27 @@
+from moviepy.editor import ImageClip, concatenate_videoclips
+
+# List of image files and their display durations in seconds
+image_files = [
+    "A_lush_mango_tree_laden_with_ripe_fruits,_sunlight.png",  # 0 - 5 seconds
+    "A_stylized_map_of_the_Indian_subcontinent_highligh.png",  # 6 - 12 seconds
+    "A_world_map_zooming_out_to_show_India,_China,_and_.png",  # 13 - 18 seconds
+    "A_cut_mango_revealing_its_juicy,_vibrant_flesh_wit.png",  # 19 - 24 seconds
+    "A_map_of_India_focusing_on_the_states_of_Uttar_Pra.png",  # 25 - 30 seconds
+    "A_split-screen_image_showing_a_farmer_tending_to_h.png",  # 31 - 36 seconds
+    "A_truck_loaded_with_crates_of_mangoes_driving_thro.png",  # 37 - 42 seconds
+    "A_montage_of_images_showcasing_the_transformation_.png",  # 43 - 48 seconds
+    "An_animated_graph_displaying_a_rising_curve,_repre.png",  # 49 - 54 seconds
+    "The_final_shot_returns_to_the_image_of_the_mango_t.png"   # 55 - 60 seconds
+]
+
+# Load images and set durations
+clips = [ImageClip(f"/mnt/data/{file}").set_duration(6) for file in image_files]
+
+# Create a single video clip
+video = concatenate_videoclips(clips, method="compose")
+
+# Output video file path
+output_video_path = "/mnt/data/mango_from_seed_to_superfood.mp4"
+
+# Write the video file to disk
+video.write_videofile(output_video_path, fps=1, codec="libx264", audio=False)
