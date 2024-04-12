@@ -1,0 +1,78 @@
+import os
+from moviepy.editor import VideoFileClip, CompositeVideoClip, TextClip, concatenate_audioclips, AudioFileClip
+from gtts import gTTS
+import subprocess  # For running ffmpeg command
+
+# Define paths
+video_path = "/Users/p/Downloads/mango_from_seed_to_superfood.mp4"
+output_video_path = "/Users/p/Downloads/mango_from_seed_to_superfood_final2.mp4"
+final_audio_path = "/Users/p/Downloads/mango_from_seed_to_superfood_final_audio2.mp3"
+temp_audio_dir = '/Users/p/Downloads/temp_audio'  # Temporary audio files directory
+os.makedirs(temp_audio_dir, exist_ok=True)  # Ensure the directory exists
+
+# Load the video
+video = VideoFileClip(video_path)
+
+# Define subtitles and their timings with manual line breaks
+subtitles = [
+    ("Did you know a single mango tree\ncan produce up to 4,000 fruits?", 0, 5),
+    ("Originating from the Indo-Burma region,\nmangoes are a gift of ancient forests.", 6, 12),
+    ("India leads global production, with\nsignificant volumes from China and Thailand.", 13, 18),
+    ("Rich in vitamins A and C,\nmangoes are nutritional powerhouses.", 19, 24),
+    ("In India, the heartland of mangoes,\ndiverse varieties thrive.", 25, 30),
+    ("The cost of cultivating one acre of mango\nis approximately Rs. 2,00,000.", 31, 36),
+    ("With an annual yield of 2.5 to 3 tonnes\nper acre, farmers can expect a profit\nof around Rs. 70,000.", 37, 42),
+    ("The real magic begins with transformation.\nFrom purees to pickles, mangoes offer\nendless possibilities.", 43, 48),
+    ("Value addition unlocks a world of\neconomic opportunity.", 49, 54),
+    ("Dive into the vibrant world of mangoes and\nexplore their untapped potential.", 55, 60)
+]
+
+# Function to generate text-to-speech and create a corresponding audio clip
+def text_to_speech(text, filename):
+    tts = gTTS(text=text.replace('\n', ' '), lang='en')  # Replace newlines for TTS
+    tts.save(filename)
+    return AudioFileClip(filename)
+
+composite_clips = [video]  # Start with the main video
+audio_clips = []
+
+# Create audio and text clips
+for idx, (text, start, end) in enumerate(subtitles):
+    audio_filename = os.path.join(temp_audio_dir, f'audio{idx}.mp3')
+    tts_audio = text_to_speech(text, audio_filename)
+    audio_clips.append(tts_audio.set_start(start))
+
+    # Create text clip with adjusted styling
+    subtitle_clip = TextClip(text, fontsize=50, color='white', font='Arial-Bold', align='center', stroke_color='black', stroke_width=1)
+    subtitle_clip = subtitle_clip.set_start(start).set_duration(end - start).set_position(('center', 'center'))
+    composite_clips.append(subtitle_clip)
+
+# Combine the video with text clips
+final_video = CompositeVideoClip(composite_clips)
+
+# Combine all audio clips and use them as the video's audio
+final_audio = concatenate_audioclips(audio_clips)
+final_video = final_video.set_audio(final_audio)
+
+# Write the video with subtitles to file
+final_video.write_videofile(output_video_path, codec="libx264", fps=video.fps)
+
+# Save the final combined audio separately
+final_audio.write_audiofile(final_audio_path)
+
+# Use ffmpeg to merge the new audio with the new video
+ffmpeg_command = [
+    'ffmpeg',
+    '-i', output_video_path,
+    '-i', final_audio_path,
+    '-c:v', 'copy',
+    '-c:a', 'aac',
+    '-strict', 'experimental',
+    output_video_path.replace('.mp4', '_with_audio.mp4')
+]
+subprocess.run(ffmpeg_command, check=True)
+
+# Clean up temporary audio files
+for file in os.listdir(temp_audio_dir):
+    os.remove(os.path.join(temp_audio_dir, file))
+os.rmdir(temp_audio_dir)
