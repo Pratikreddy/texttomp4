@@ -1,0 +1,211 @@
+import json
+from openai import OpenAI
+import os
+import requests
+from datetime import datetime
+from moviepy.editor import ImageSequenceClip,  concatenate_videoclips, ImageClip
+import subprocess  # For running ffmpeg command
+from gtts import gTTS
+from moviepy.editor import AudioFileClip, concatenate_audioclips, TextClip, CompositeVideoClip
+
+api_key = "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"
+client = OpenAI(api_key=api_key)
+
+# Prompting the user for input
+context = input("Enter the context along with the fruit/vegetable name: ")
+print("input received")
+
+# Predefined JSON structure
+expected_format = {
+    "title": "suggest a title",
+    "segments": [
+        {
+            "start_time": 0,
+            "end_time": 5,
+            "text_1": "Introduce a captivating fact about the [Fruit/Vegetable].",
+            "visual_prompt_1": "suggest good img for img_1 idea"
+        },
+        {
+            "start_time": 6,
+            "end_time": 10,
+            "text_2": "Mention the origin and historical background of the [Fruit/Vegetable].",
+            "visual_prompt_2": "suggest good img for img_2 idea"
+        },
+        {
+            "start_time": 11,
+            "end_time": 15,
+            "text_3": "List the top global producers, focusing on any significant contributors.",
+            "visual_prompt_3": "suggest good img for img_3 idea"
+        },
+        {
+            "start_time": 16,
+            "end_time": 20,
+            "text_4": "Describe key nutritional benefits of the [Fruit/Vegetable].",
+            "visual_prompt_4": "suggest good img for img_4 idea"
+        },
+        {
+            "start_time": 21,
+            "end_time": 25,
+            "text_5": "Transition to cultivation specifics in India, mentioning key states.",
+            "visual_prompt_5": "suggest good img for img_5 idea"
+        },
+        {
+            "start_time": 26,
+            "end_time": 30,
+            "text_6": "Discuss the cost of cultivation per acre.",
+            "visual_prompt_6": "suggest good img for img_6 idea"
+        },
+        {
+            "start_time": 31,
+            "end_time": 35,
+            "text_7": "Highlight returns per acre and potential profit margins.",
+            "visual_prompt_7": "suggest good img for img_7 idea"
+        },
+        {
+            "start_time": 36,
+            "end_time": 40,
+            "text_8": "Introduce the concept of value addition.",
+            "visual_prompt_8": "suggest good img for img_8 idea"
+        },
+        {
+            "start_time": 41,
+            "end_time": 45,
+            "text_9": "Discuss various value-added products and their market relevance.",
+            "visual_prompt_9": "suggest good img for img_9 idea"
+        },
+        {
+            "start_time": 46,
+            "end_time": 50,
+            "text_10": "Illustrate the increase in earnings through value addition.",
+            "visual_prompt_10": "suggest good img for img_10 idea"
+        },
+        {
+            "start_time": 51,
+            "end_time": 55,
+            "text_11": "Reiterate the economic and health benefits of the [Fruit/Vegetable].",
+            "visual_prompt_11": "suggest good img for img_11 idea"
+        },
+        {
+            "start_time": 56,
+            "end_time": 60,
+            "text_12": "Encourage viewers to explore the potential of the [Fruit/Vegetable].",
+            "visual_prompt_12": "suggest good img for img_12 idea"
+        }
+    ]
+}
+
+# Constructing user prompt
+userprompt = f"Generate a JSON object for the fruit/vegetable. Fill in the expected json with a nice script: {context}. Keep the keys exactly as follows: {json.dumps(expected_format)}"
+
+# Sending prompt to OpenAI
+chat_completion, *_ = client.chat.completions.create(
+    messages=[
+        {"role": "system", "content": "please output valid JSON you are an agriculture analyst and a moviemaker remember in the text field you need to fill out nice narrations for that particular picture using the already given idea as the placeholder in the expected_format"},
+        {"role": "user", "content": userprompt}
+
+    ],
+    model="gpt-4-1106-preview",
+    response_format={"type": "json_object"},
+).choices
+
+# Extracting JSON content from response
+content = chat_completion.message.content
+reply = json.loads(content)
+
+# Print the generated JSON
+print(content)
+
+# Initialize OpenAI client
+client = OpenAI(api_key=api_key)
+
+# Function to generate images based on visual prompts
+def generate_images_from_prompts(prompts):
+    generated_images = []
+    for prompt in prompts:
+        response = client.images.generate(
+            model="dall-e-3",
+            prompt=prompt,
+            size="1024x1792",
+            quality="standard",
+            n=1
+        )
+        image_url = response.data[0].url
+        generated_images.append(image_url)
+    return generated_images
+
+# Extracting visual prompts from the reply object
+visual_prompts = [item[f'visual_prompt_{i+1}'] for i, item in enumerate(reply['segments'])]
+
+# Generating images
+images_urls = generate_images_from_prompts(visual_prompts)
+
+# Creating a directory with the current timestamp
+dir_name = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+os.makedirs(dir_name, exist_ok=True)
+
+# Downloading and saving the images
+for url in images_urls:
+    print(url)
+    response = requests.get(url)
+    if response.status_code == 200:
+        file_path = os.path.join(dir_name, f"image_{images_urls.index(url) + 1}.png")
+        with open(file_path, 'wb') as file:
+            file.write(response.content)
+        print(f"Downloaded and saved: {file_path}")
+    else:
+        print(f"Failed to download image from {url}")
+        
+
+def create_video_clip(image_paths, durations):
+    clips = [ImageClip(image).set_duration(duration) for image, duration in zip(image_paths, durations)]
+    video = concatenate_videoclips(clips, method="compose")
+    return video
+
+def add_subtitles(video, segments):
+    composite_clips = [video]  # Start with the main video clip
+    for idx, segment in enumerate(segments):
+        text = segment.get(f'text_{idx+1}', '')  # Extract text
+        start_time = segment.get('start_time', 0)
+        end_time = segment.get('end_time', start_time + 5)  # Default duration 5 seconds
+        subtitle_clip = TextClip(text, fontsize=24, color='white', font='Arial-Bold', align='center', stroke_color='black', stroke_width=0.5)
+        subtitle_clip = subtitle_clip.set_start(start_time).set_duration(end_time - start_time).set_position(('center', 'bottom'))
+        composite_clips.append(subtitle_clip)
+    return CompositeVideoClip(composite_clips)
+
+def generate_audio_clips(segments, temp_audio_dir):
+    audio_clips = []
+    for idx, segment in enumerate(segments):
+        text = segment.get(f'text_{idx+1}', '')
+        audio_filename = os.path.join(temp_audio_dir, f'audio{idx}.mp3')
+        tts = gTTS(text=text, lang='en')
+        tts.save(audio_filename)
+        audio_clip = AudioFileClip(audio_filename).set_start(segment['start_time'])
+        audio_clips.append(audio_clip)
+    return concatenate_audioclips(audio_clips)
+
+def create_final_video(composite_video, audio, output_path):
+    final_video = composite_video.set_audio(audio)
+    final_video.write_videofile(output_path, codec="libx264", fps=24)
+    return output_path
+
+# Example usage
+dir_name = dir_name
+os.makedirs(dir_name, exist_ok=True)
+temp_audio_dir = os.path.join(dir_name, 'temp_audio')
+os.makedirs(temp_audio_dir, exist_ok=True)
+
+image_files = [os.path.join(dir_name, f"image_{i+1}.png") for i in range(len(images_urls))]
+image_durations = [(item['end_time'] - item['start_time']) for item in reply['segments']]
+
+initial_video = create_video_clip(image_files, image_durations)
+subtitled_video = add_subtitles(initial_video, reply['segments'])
+audio_clips = generate_audio_clips(reply['segments'], temp_audio_dir)
+final_video_path = os.path.join(dir_name, f"{reply['title']}_final.mp4")
+create_final_video(subtitled_video, audio_clips, final_video_path)
+
+print(f"Final video with subtitles and audio saved to {final_video_path}")
+
+# Cleanup
+for file in os.listdir(temp_audio_dir):
+    os.remove(os.path.join(temp_audio_dir, file))
+os.rmdir(temp_audio_dir)
