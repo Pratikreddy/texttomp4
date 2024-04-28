@@ -1,0 +1,11 @@
+from moviepy.editor import VideoFileClip
+
+# Replace 'input_movie.qt' with your QuickTime file's path
+input_file =r"/Users/p/Desktop/subtitles/yt5.mov"
+output_file = 'yt5.mp4'
+
+# Load the video file
+clip = VideoFileClip(input_file)
+
+# Write the file as an MP4
+clip.write_videofile(output_file)
